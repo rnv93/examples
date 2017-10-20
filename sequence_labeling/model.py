@@ -1,3 +1,4 @@
+import torch
 import torch.nn as nn
 from torch.autograd import Variable
 import torch.nn.functional as F
@@ -28,12 +29,6 @@ class SequenceLabeler(nn.Module):
         self.embed = nn.Embedding(config.n_embed, config.d_embed)
         self.projection = nn.Linear(config.d_embed, config.d_proj)
 
-        rnn_input_size = config.d_proj if config.projection else config.d_embed
-        # self.rnn = nn.LSTM(input_size=rnn_input_size,
-        #                    hidden_size=config.d_hidden,
-        #                    num_layers=config.n_layers,
-        #                    dropout=config.dp_ratio,
-        #                    bidirectional=config.birnn)
         self.rnn = RNN(config)
         self.dropout = nn.Dropout(p=config.dp_ratio)
         self.relu = nn.ReLU()
@@ -67,3 +62,23 @@ class SequenceLabeler(nn.Module):
         scores = self.out(rnn_out)
         scores = F.log_softmax(scores)
         return scores
+
+    def evaluate(self, data_iter, special_tokens = set()):
+        self.eval();
+        data_iter.init_epoch()
+
+        # calculate accuracy on validation set
+        n_correct, dev_loss = 0, 0
+        n_total = 0
+        for batch_idx, batch in enumerate(data_iter):
+            answer = self(batch.word)
+            predicted = torch.max(answer, 2)[1].view(-1).data
+            correct = batch.udtag.view(-1).data
+            words = batch.word.view(-1).data
+            for idx, word in enumerate(words):
+                if word not in special_tokens:
+                    if predicted[idx] == correct[idx]:
+                        n_correct += 1
+                    n_total += 1
+        acc = 100. * n_correct / n_total
+        return acc
