@@ -61,9 +61,10 @@ class SequenceLabeler(nn.Module):
         if self.config.projection:
             word_embed = self.tanh(self.projection(word_embed))
         rnn_out = self.rnn(word_embed)
+        rnn_out = self.dropout(rnn_out)
         scores = self.out(rnn_out)
         # scores = self.out(rnn_out)
-        scores = F.log_softmax(scores)
+        # scores = F.log_softmax(scores)
         return scores
 
     def evaluate(self, data_iter, special_tokens = set()):

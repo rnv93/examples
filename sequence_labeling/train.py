@@ -24,7 +24,7 @@ torch.cuda.set_device(args.gpu)
 print(args)
 
 # Define columns.
-WORD = data.Field()
+WORD = data.Field(lower=True)
 UD_TAG = data.Field()
 
 # Build initial vocabulary.
@@ -46,15 +46,16 @@ train, dev, test = datasets.SequenceLabelingDataset.load_default_dataset(
     fields=(('word', WORD), ('udtag', UD_TAG), (None, None)))
 print("Data loaded")
 
-# print("Loading embeddings")
-# Load embeddings. Vocabulary is limited to the words in Glove.
-
 WORD.build_vocab(train, min_freq=3)
-# embeddings = vocab.pretrained_aliases[args.word_vectors]()
-# WORD.vocab.extend(embeddings) # Build vocab from embeddings.
-# WORD.vocab.load_vectors(embeddings) # Copy embeddings.
-# del embeddings # destroy this local variable.
-# print("Embeddings loaded")
+if args.word_vectors:
+    # print("Loading embeddings")
+    # Load embeddings.
+    print("Loading Embeddings")
+    embeddings = vocab.pretrained_aliases[args.word_vectors]()
+    WORD.vocab.extend(embeddings) # Build vocab from embeddings.
+    WORD.vocab.load_vectors(embeddings) # Copy embeddings.
+    del embeddings # destroy this local variable.
+    print("Embeddings loaded")
 
 # Load tags
 UD_TAG.build_vocab(train)
@@ -79,16 +80,16 @@ if args.resume_snapshot:
                            args.gpu))
 else:
     model = SequenceLabeler(config)
-    # if args.word_vectors:
-    #    model.embed.weight.data = WORD.vocab.vectors
+    if args.word_vectors:
+       model.embed.weight.data = WORD.vocab.vectors
     if args.gpu > -1:
         print("Creating CUDA model")
         model.cuda()
         print("CUDA model created")
 
-criterion = nn.NLLLoss()
-# opt = O.Adam(model.parameters(), lr=args.lr)
-opt = O.SGD(model.parameters(), lr=args.lr)
+criterion = nn.CrossEntropyLoss()
+opt = O.Adam(model.parameters(), lr=args.lr)
+# opt = O.SGD(model.parameters(), lr=args.lr)
 
 iterations = 0
 start = time.time()
