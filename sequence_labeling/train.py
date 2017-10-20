@@ -1,6 +1,7 @@
 import os
 import time
 import glob
+import random
 
 import torch
 import torch.optim as O
@@ -13,6 +14,9 @@ from torchtext import datasets
 from model import SequenceLabeler
 from util import get_args, makedirs
 
+seed=201017
+random.seed(seed)
+torch.manual_seed(seed)
 
 args = get_args()
 torch.cuda.set_device(args.gpu)
@@ -20,8 +24,8 @@ torch.cuda.set_device(args.gpu)
 print(args)
 
 # Define columns.
-WORD = data.Field(init_token="<bos>", eos_token="<eos>", lower=True)
-UD_TAG = data.Field(init_token="<bos>", eos_token="<eos>")
+WORD = data.Field()
+UD_TAG = data.Field()
 
 # Build initial vocabulary.
 WORD.build_vocab() # Add bos, eos and pad tokens.
@@ -42,14 +46,15 @@ train, dev, test = datasets.SequenceLabelingDataset.load_default_dataset(
     fields=(('word', WORD), ('udtag', UD_TAG), (None, None)))
 print("Data loaded")
 
-print("Loading embeddings")
+# print("Loading embeddings")
 # Load embeddings. Vocabulary is limited to the words in Glove.
 
-embeddings = vocab.pretrained_aliases[args.word_vectors]()
-WORD.vocab.extend(embeddings) # Build vocab from embeddings.
-WORD.vocab.load_vectors(embeddings) # Copy embeddings.
-del embeddings # destroy this local variable.
-print("Embeddings loaded")
+WORD.build_vocab(train, min_freq=3)
+# embeddings = vocab.pretrained_aliases[args.word_vectors]()
+# WORD.vocab.extend(embeddings) # Build vocab from embeddings.
+# WORD.vocab.load_vectors(embeddings) # Copy embeddings.
+# del embeddings # destroy this local variable.
+# print("Embeddings loaded")
 
 # Load tags
 UD_TAG.build_vocab(train)
@@ -74,15 +79,16 @@ if args.resume_snapshot:
                            args.gpu))
 else:
     model = SequenceLabeler(config)
-    if args.word_vectors:
-        model.embed.weight.data = WORD.vocab.vectors
-        if args.gpu > -1:
-            print("Creating CUDA model")
-            model.cuda()
-            print("CUDA model created")
+    # if args.word_vectors:
+    #    model.embed.weight.data = WORD.vocab.vectors
+    if args.gpu > -1:
+        print("Creating CUDA model")
+        model.cuda()
+        print("CUDA model created")
 
-criterion = nn.CrossEntropyLoss()
-opt = O.Adam(model.parameters(), lr=args.lr)
+criterion = nn.NLLLoss()
+# opt = O.Adam(model.parameters(), lr=args.lr)
+opt = O.SGD(model.parameters(), lr=args.lr)
 
 iterations = 0
 start = time.time()

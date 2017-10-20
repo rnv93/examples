@@ -31,20 +31,22 @@ class SequenceLabeler(nn.Module):
 
         self.rnn = RNN(config)
         self.dropout = nn.Dropout(p=config.dp_ratio)
-        self.relu = nn.ReLU()
+        self.tanh = nn.Tanh()
 
         seq_in_size = config.d_hidden
         if self.config.birnn:
             seq_in_size *= 2
 
-        self.out = nn.Sequential(
-            nn.Linear(seq_in_size, seq_in_size),
-            self.relu,
-            self.dropout,
-            nn.Linear(seq_in_size, seq_in_size),
-            self.relu,
-            self.dropout,
-            nn.Linear(seq_in_size, config.d_out))
+        self.out = nn.Linear(seq_in_size, config.d_out)
+
+        # self.out = nn.Sequential(
+        #     nn.Linear(seq_in_size, seq_in_size),
+        #     self.tanh,
+        #     self.dropout,
+        #     nn.Linear(seq_in_size, seq_in_size),
+        #     self.tanh,
+        #     self.dropout,
+        #     nn.Linear(seq_in_size, config.d_out))
 
     def init_hidden(self, inputs):
         batch_size = inputs.size()[1]
@@ -57,14 +59,15 @@ class SequenceLabeler(nn.Module):
         if self.config.fix_emb:
             word_embed = Variable(word_embed.data)
         if self.config.projection:
-            word_embed = self.relu(self.projection(word_embed))
+            word_embed = self.tanh(self.projection(word_embed))
         rnn_out = self.rnn(word_embed)
         scores = self.out(rnn_out)
+        # scores = self.out(rnn_out)
         scores = F.log_softmax(scores)
         return scores
 
     def evaluate(self, data_iter, special_tokens = set()):
-        self.eval();
+        self.eval()
         data_iter.init_epoch()
 
         # calculate accuracy on validation set
