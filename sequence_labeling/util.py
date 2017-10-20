@@ -21,9 +21,9 @@ def makedirs(name):
 def get_args():
     parser = ArgumentParser(description='PyTorch/torchtext Sequence Labeling'
                                         'example')
-    parser.add_argument('--epochs', type=int, default=500)
+    parser.add_argument('--epochs', type=int, default=5000)
     parser.add_argument('--batch_size', type=int, default=128)
-    parser.add_argument('--d_embed', type=int, default=300)
+    parser.add_argument('--d_embed', type=int, default=100)
     parser.add_argument('--d_proj', type=int, default=300)
     parser.add_argument('--d_hidden', type=int, default=300)
     parser.add_argument('--n_layers', type=int, default=1)
@@ -41,7 +41,7 @@ def get_args():
     parser.add_argument('--data_cache', type=str, default=os.path.join(os.getcwd(), '.data_cache'))
     parser.add_argument('--vector_cache', type=str, default=os.path.join(os.getcwd(), '.vector_cache/input_vectors.pt'))
     parser.add_argument('--word_vectors', type=str,
-                        default='glove.42B.300d')
+                        default='glove.6B.100d')
     parser.add_argument('--resume_snapshot', type=str, default='')
     args = parser.parse_args()
     return args

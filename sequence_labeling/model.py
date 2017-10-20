@@ -65,5 +65,5 @@ class SequenceLabeler(nn.Module):
             word_embed = self.relu(self.projection(word_embed))
         rnn_out = self.rnn(word_embed)
         scores = self.out(rnn_out)
-        scores = F.log_softmax(scores)
+        #scores = F.log_softmax(scores)
         return scores
