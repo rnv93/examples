@@ -21,7 +21,7 @@ def makedirs(name):
 def get_args():
     parser = ArgumentParser(description='PyTorch/torchtext Sequence Labeling'
                                         'example')
-    parser.add_argument('--epochs', type=int, default=5000)
+    parser.add_argument('--epochs', type=int, default=200)
     parser.add_argument('--batch_size', type=int, default=16)
     parser.add_argument('--d_embed', type=int, default=100)
     parser.add_argument('--d_proj', type=int, default=300)
