@@ -10,8 +10,8 @@ class RNN(nn.Module):
         self.config = config
         input_size = config.d_proj if config.projection else config.d_embed
         self.rnn = nn.LSTM(input_size=input_size, hidden_size=config.d_hidden,
-                        num_layers=config.n_layers, dropout=config.dp_ratio,
-                        bidirectional=config.birnn)
+                           num_layers=config.n_layers, dropout=config.dp_ratio,
+                           bidirectional=config.birnn)
 
     def forward(self, inputs):
         batch_size = inputs.size()[1]
@@ -61,14 +61,17 @@ class SequenceLabeler(nn.Module):
         scores = self.out(rnn_out)
         return scores
 
-    def evaluate(self, data_iter, loss_fn, config, special_tokens = set()):
+    def evaluate(self, data_iter, loss_fn, config, special_tokens=None):
         self.eval()
         data_iter.init_epoch()
+        if not special_tokens:
+            special_tokens = set()
 
         # calculate accuracy on validation set
         n_correct = 0
         n_total = 0
         total_loss = 0.0
+        batch_idx = 0
         for batch_idx, batch in enumerate(data_iter):
             answer = self(batch.word)
             predicted = torch.max(answer, 2)[1].view(-1).data

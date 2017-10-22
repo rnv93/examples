@@ -5,7 +5,7 @@ def makedirs(name):
     """helper function for python 2 and 3 to call os.makedirs()
        avoiding an error if the directory to be created already exists"""
 
-    import os, errno
+    import errno
 
     try:
         os.makedirs(name)
@@ -39,7 +39,9 @@ def get_args():
     parser.add_argument('--gpu', type=int, default=0)
     parser.add_argument('--save_path', type=str, default='results')
     parser.add_argument('--data_cache', type=str, default=os.path.join(os.getcwd(), '.data_cache'))
-    parser.add_argument('--vector_cache', type=str, default=os.path.join(os.getcwd(), '.vector_cache/input_vectors.pt'))
+    parser.add_argument('--vector_cache', type=str,
+                        default=os.path.join(os.getcwd(),
+                                             '.vector_cache/input_vectors.pt'))
     parser.add_argument('--word_vectors', type=str,
                         default='glove.6B.100d')
     parser.add_argument('--resume_snapshot', type=str, default='')

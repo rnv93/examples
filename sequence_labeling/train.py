@@ -84,8 +84,10 @@ start = time.time()
 best_dev_acc = -1
 train_iter.repeat = False
 header = '  Time Epoch Iteration Progress    (%Epoch)   Loss   Dev/Loss     Accuracy  Dev/Accuracy'
-dev_log_template = ' '.join('{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {:>7.0f}%,{:>8.6f},{:8.6f},{:12.4f},{:12.4f}'.split(','))
-log_template =     ' '.join('{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {:>7.0f}%,{:>8.6f},{},{:12.4f},{}'.split(','))
+dev_log_template = ' '.join('{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {'
+                            ':>7.0f}%,{:>8.6f},{:8.6f},{:12.4f},{:12.4f}'.split(','))
+log_template = ' '.join('{:>6.0f},{:>5.0f},{:>9.0f},{:>5.0f}/{:<5.0f} {'
+                        ':>7.0f}%,{:>8.6f},{},{:12.4f},{}'.split(','))
 makedirs(args.save_path)
 print(header)
 
@@ -93,6 +95,7 @@ for epoch in range(args.epochs):
     train_iter.init_epoch()
     n_correct, n_total = 0, 0
     total_loss = 0.0
+    batch_idx = 0
     for batch_idx, batch in enumerate(train_iter):
 
         # switch model to training mode, clear gradient accumulators
@@ -117,12 +120,12 @@ for epoch in range(args.epochs):
         # backpropagate and update optimizer learning rate
         loss.backward(); opt.step()
 
-    loss_per_batch = total_loss/ batch_idx + 1.0
+    loss_per_batch = total_loss/ (batch_idx + 1.0)
 
     # evaluate performance on validation set periodically
     if epoch % args.dev_every == 0:
         dev_acc, dev_loss = model.evaluate(dev_iter, criterion, config,
-                                     special_tokens)
+                                           special_tokens)
         print(dev_log_template.format(time.time() - start,
                                       epoch, iterations, 1 + batch_idx,
                                       len(train_iter),
@@ -134,9 +137,9 @@ for epoch in range(args.epochs):
 
         # print progress message
         print(log_template.format(time.time() - start,
-                                  epoch, iterations, 1 + batch_idx,
+                                  epoch, iterations, batch_idx + 1,
                                   len(train_iter),
-                                  100. * (1 + batch_idx) / len(train_iter),
+                                  100. * (batch_idx + 1) / len(train_iter),
                                   loss_per_batch, ' ' * 8,
                                   n_correct / n_total * 100, ' ' * 12))
 
