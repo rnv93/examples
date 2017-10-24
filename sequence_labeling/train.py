@@ -163,6 +163,10 @@ for epoch in range(args.epochs):
         snapshot_path = snapshot_prefix + '_devacc_{}_devloss_{}_epoch_{}_model.pt'.format(
             dev_acc, 0, iterations)
 
+        test_acc, test_loss = model.evaluate(test_iter, criterion, config,
+                                             special_tokens)
+        print("Test Accuracy of Best Dev So far: {}".format(test_acc))
+
         # save model, delete previous 'best_snapshot' files
         torch.save(model, snapshot_path)
         for f in glob.glob(snapshot_prefix + '*'):
